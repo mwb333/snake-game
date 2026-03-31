@@ -25,9 +25,6 @@ const speeds = {
 let snakeColors = ['#00ffff', '#00cccc', '#009999', '#006666'];
 const foodColors = ['#ff9900', '#ffaa33', '#ffcc66', '#ffdd99'];
 
-// 背景音乐
-let backgroundMusic;
-
 // 变身等级设置
 const evolutionLevels = [
     { name: '幼蛇', colors: ['#00ffff', '#00cccc', '#009999', '#006666'], glow: '0 0 5px rgba(0, 255, 255, 0.5)' },
@@ -38,9 +35,6 @@ const evolutionLevels = [
 ];
 
 let currentEvolution = 0;
-
-// 背景音乐
-let backgroundMusic;
 
 // 初始化音频
 function initAudio() {
@@ -61,40 +55,68 @@ function initAudio() {
 }
 
 // DOM元素
-const gameBoard = document.getElementById('game-board');
-const scoreElement = document.getElementById('score');
-const highScoreElement = document.getElementById('high-score');
-const difficultySelect = document.getElementById('difficulty-select');
-const soundToggle = document.getElementById('sound-toggle');
-const snakeColorPicker = document.getElementById('snake-color-picker');
+let gameBoard, scoreElement, highScoreElement, difficultySelect, soundToggle, snakeColorPicker;
+
+// 初始化DOM元素
+function initDOM() {
+    try {
+        gameBoard = document.getElementById('game-board');
+        scoreElement = document.getElementById('score');
+        highScoreElement = document.getElementById('high-score');
+        difficultySelect = document.getElementById('difficulty-select');
+        soundToggle = document.getElementById('sound-toggle');
+        snakeColorPicker = document.getElementById('snake-color-picker');
+        
+        // 检查所有DOM元素是否存在
+        if (!gameBoard || !scoreElement || !highScoreElement || !difficultySelect || !soundToggle || !snakeColorPicker) {
+            console.log('Error: Missing DOM elements');
+        }
+    } catch (e) {
+        console.log('Error initializing DOM elements:', e);
+    }
+}
 
 // 保存蛇颜色
 function saveSnakeColor() {
-    localStorage.setItem('snakeGameColor', snakeColorPicker.value);
+    try {
+        if (snakeColorPicker) {
+            localStorage.setItem('snakeGameColor', snakeColorPicker.value);
+        }
+    } catch (e) {
+        console.log('Error saving snake color:', e);
+    }
 }
 
 // 加载蛇颜色
 function loadSnakeColor() {
-    const savedColor = localStorage.getItem('snakeGameColor');
-    if (savedColor) {
-        snakeColorPicker.value = savedColor;
-        updateSnakeColors(savedColor);
+    try {
+        const savedColor = localStorage.getItem('snakeGameColor');
+        if (savedColor && snakeColorPicker) {
+            snakeColorPicker.value = savedColor;
+            updateSnakeColors(savedColor);
+        }
+    } catch (e) {
+        console.log('Error loading snake color:', e);
     }
 }
 
 // 更新蛇颜色
 function updateSnakeColors(baseColor) {
-    // 生成基于所选颜色的渐变
-    const base = hexToRgb(baseColor);
-    snakeColors = [
-        baseColor,
-        rgbToHex(base.r - 32, base.g - 32, base.b - 32),
-        rgbToHex(base.r - 64, base.g - 64, base.b - 64),
-        rgbToHex(base.r - 96, base.g - 96, base.b - 96)
-    ];
-    // 如果游戏正在运行，重新渲染
-    if (gameRunning) {
-        render();
+    try {
+        // 生成基于所选颜色的渐变
+        const base = hexToRgb(baseColor);
+        snakeColors = [
+            baseColor,
+            rgbToHex(base.r - 32, base.g - 32, base.b - 32),
+            rgbToHex(base.r - 64, base.g - 64, base.b - 64),
+            rgbToHex(base.r - 96, base.g - 96, base.b - 96)
+        ];
+        // 如果游戏正在运行，重新渲染
+        if (gameRunning) {
+            render();
+        }
+    } catch (e) {
+        console.log('Error updating snake colors:', e);
     }
 }
 
@@ -115,140 +137,172 @@ function rgbToHex(r, g, b) {
 
 // 初始化游戏
 function initGame() {
-    // 加载最高分
-    loadHighScore();
-    
-    // 加载蛇颜色
-    loadSnakeColor();
-    
-    // 初始化音频
-    initAudio();
-    
-    // 创建游戏板
     try {
-        for (let y = 0; y < GRID_SIZE; y++) {
-            for (let x = 0; x < GRID_SIZE; x++) {
-                const cell = document.createElement('div');
-                cell.classList.add('cell');
-                cell.id = `cell-${x}-${y}`;
-                gameBoard.appendChild(cell);
+        // 初始化DOM元素
+        initDOM();
+        
+        // 加载最高分
+        loadHighScore();
+        
+        // 加载蛇颜色
+        loadSnakeColor();
+        
+        // 初始化音频
+        initAudio();
+        
+        // 创建游戏板
+        if (gameBoard) {
+            try {
+                for (let y = 0; y < GRID_SIZE; y++) {
+                    for (let x = 0; x < GRID_SIZE; x++) {
+                        const cell = document.createElement('div');
+                        cell.classList.add('cell');
+                        cell.id = `cell-${x}-${y}`;
+                        gameBoard.appendChild(cell);
+                    }
+                }
+            } catch (e) {
+                console.log('Error creating game board:', e);
             }
+        }
+        
+        // 渲染初始状态
+        render();
+        
+        // 监听键盘事件
+        document.addEventListener('keydown', handleKeyPress);
+        
+        // 监听触摸控制按钮事件
+        try {
+            const upBtn = document.getElementById('up-btn');
+            const downBtn = document.getElementById('down-btn');
+            const leftBtn = document.getElementById('left-btn');
+            const rightBtn = document.getElementById('right-btn');
+            const startBtn = document.getElementById('start-btn');
+            
+            if (upBtn) upBtn.addEventListener('click', () => { if (direction.y !== 1) nextDirection = { x: 0, y: -1 }; });
+            if (downBtn) downBtn.addEventListener('click', () => { if (direction.y !== -1) nextDirection = { x: 0, y: 1 }; });
+            if (leftBtn) leftBtn.addEventListener('click', () => { if (direction.x !== 1) nextDirection = { x: -1, y: 0 }; });
+            if (rightBtn) rightBtn.addEventListener('click', () => { if (direction.x !== -1) nextDirection = { x: 1, y: 0 }; });
+            if (startBtn) startBtn.addEventListener('click', toggleGame);
+        } catch (e) {
+            console.log('Error adding touch control listeners:', e);
+        }
+        
+        // 监听难度选择
+        if (difficultySelect) {
+            difficultySelect.addEventListener('change', (e) => {
+                difficulty = e.target.value;
+                if (gameRunning) {
+                    clearInterval(gameInterval);
+                    gameInterval = setInterval(gameLoop, speeds[difficulty]);
+                }
+            });
+        }
+        
+        // 监听音效开关
+        if (soundToggle) {
+            soundToggle.addEventListener('change', (e) => {
+                soundEnabled = e.target.checked;
+                if (soundEnabled && gameRunning && backgroundMusic) {
+                    try {
+                        backgroundMusic.play().catch(e => console.log('Audio play failed:', e));
+                    } catch (e) {
+                        console.log('Audio play failed:', e);
+                    }
+                } else if (backgroundMusic) {
+                    try {
+                        backgroundMusic.pause();
+                    } catch (e) {
+                        console.log('Audio pause failed:', e);
+                    }
+                }
+            });
+        }
+        
+        // 监听蛇颜色选择
+        if (snakeColorPicker) {
+            snakeColorPicker.addEventListener('change', (e) => {
+                updateSnakeColors(e.target.value);
+                saveSnakeColor();
+            });
         }
     } catch (e) {
-        console.log('Error creating game board:', e);
+        console.log('Error initializing game:', e);
     }
-    
-    // 渲染初始状态
-    render();
-    
-    // 监听键盘事件
-    document.addEventListener('keydown', handleKeyPress);
-    
-    // 监听触摸控制按钮事件
-    document.getElementById('up-btn').addEventListener('click', () => {
-        if (direction.y !== 1) nextDirection = { x: 0, y: -1 };
-    });
-    document.getElementById('down-btn').addEventListener('click', () => {
-        if (direction.y !== -1) nextDirection = { x: 0, y: 1 };
-    });
-    document.getElementById('left-btn').addEventListener('click', () => {
-        if (direction.x !== 1) nextDirection = { x: -1, y: 0 };
-    });
-    document.getElementById('right-btn').addEventListener('click', () => {
-        if (direction.x !== -1) nextDirection = { x: 1, y: 0 };
-    });
-    document.getElementById('start-btn').addEventListener('click', toggleGame);
-    
-    // 监听难度选择
-    difficultySelect.addEventListener('change', (e) => {
-        difficulty = e.target.value;
-        if (gameRunning) {
-            clearInterval(gameInterval);
-            gameInterval = setInterval(gameLoop, speeds[difficulty]);
-        }
-    });
-    
-    // 监听音效开关
-    soundToggle.addEventListener('change', (e) => {
-        soundEnabled = e.target.checked;
-        if (soundEnabled && gameRunning && backgroundMusic) {
-            try {
-                backgroundMusic.play().catch(e => console.log('Audio play failed:', e));
-            } catch (e) {
-                console.log('Audio play failed:', e);
-            }
-        } else if (backgroundMusic) {
-            try {
-                backgroundMusic.pause();
-            } catch (e) {
-                console.log('Audio pause failed:', e);
-            }
-        }
-    });
-    
-    // 监听蛇颜色选择
-    snakeColorPicker.addEventListener('change', (e) => {
-        updateSnakeColors(e.target.value);
-        saveSnakeColor();
-    });
 }
 
 // 检查变身等级
 function checkEvolution() {
-    const newLevel = Math.min(Math.floor(score / 10), evolutionLevels.length - 1);
-    if (newLevel > currentEvolution) {
-        currentEvolution = newLevel;
-        // 应用新的外观
-        const evolution = evolutionLevels[currentEvolution];
-        snakeColors = evolution.colors;
+    try {
+        const newLevel = Math.min(Math.floor(score / 10), evolutionLevels.length - 1);
+        if (newLevel > currentEvolution) {
+            currentEvolution = newLevel;
+            // 应用新的外观
+            const evolution = evolutionLevels[currentEvolution];
+            snakeColors = evolution.colors;
+            
+            // 显示升级特效
+            showEvolutionEffect(evolution.name);
+            
+            // 更新等级显示
+            const evolutionLevelElement = document.getElementById('evolution-level');
+            if (evolutionLevelElement) {
+                evolutionLevelElement.textContent = evolution.name;
+            }
+        }
         
-        // 显示升级特效
-        showEvolutionEffect(evolution.name);
-        
-        // 更新等级显示
-        document.getElementById('evolution-level').textContent = evolution.name;
+        // 更新进度条
+        const progress = (score % 10) / 10 * 100;
+        const progressFill = document.getElementById('progress-fill');
+        const progressText = document.getElementById('progress-text');
+        if (progressFill) progressFill.style.width = progress + '%';
+        if (progressText) progressText.textContent = `${score % 10}/10`;
+    } catch (e) {
+        console.log('Error checking evolution:', e);
     }
-    
-    // 更新进度条
-    const progress = (score % 10) / 10 * 100;
-    document.getElementById('progress-fill').style.width = progress + '%';
-    document.getElementById('progress-text').textContent = `${score % 10}/10`;
 }
 
 // 显示变身特效
 function showEvolutionEffect(levelName) {
-    const effectsContainer = document.getElementById('game-effects');
-    const effect = document.createElement('div');
-    effect.className = 'evolution-effect';
-    effect.innerHTML = `
-        <div class="level-up-text">✨ ${levelName} ✨</div>
-    `;
-    effect.style.cssText = `
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: rgba(0, 0, 0, 0.8);
-        color: #ffd700;
-        padding: 20px;
-        border-radius: 10px;
-        border: 2px solid #ffd700;
-        font-size: 24px;
-        font-weight: bold;
-        text-align: center;
-        z-index: 100;
-        animation: levelUp 2s ease-out forwards;
-        box-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
-    `;
-    
-    effectsContainer.appendChild(effect);
-    
-    // 2秒后移除特效
-    setTimeout(() => {
-        if (effectsContainer.contains(effect)) {
-            effectsContainer.removeChild(effect);
+    try {
+        const effectsContainer = document.getElementById('game-effects');
+        if (effectsContainer) {
+            const effect = document.createElement('div');
+            effect.className = 'evolution-effect';
+            effect.innerHTML = `
+                <div class="level-up-text">✨ ${levelName} ✨</div>
+            `;
+            effect.style.cssText = `
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(0, 0, 0, 0.8);
+                color: #ffd700;
+                padding: 20px;
+                border-radius: 10px;
+                border: 2px solid #ffd700;
+                font-size: 24px;
+                font-weight: bold;
+                text-align: center;
+                z-index: 100;
+                animation: levelUp 2s ease-out forwards;
+                box-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+            `;
+            
+            effectsContainer.appendChild(effect);
+            
+            // 2秒后移除特效
+            setTimeout(() => {
+                if (effectsContainer.contains(effect)) {
+                    effectsContainer.removeChild(effect);
+                }
+            }, 2000);
         }
-    }, 2000);
+    } catch (e) {
+        console.log('Error showing evolution effect:', e);
+    }
 }
 
 // 添加CSS动画
@@ -264,44 +318,48 @@ document.head.appendChild(style);
 
 // 渲染游戏状态
 function render() {
-    // 清空游戏板
-    document.querySelectorAll('.cell').forEach(cell => {
-        cell.classList.remove('snake', 'food');
-        cell.style.backgroundColor = '';
-        cell.style.boxShadow = '';
-    });
-    
-    // 获取当前等级的发光效果
-    const currentGlow = evolutionLevels[currentEvolution].glow;
-    
-    // 渲染蛇
-    snake.forEach((segment, index) => {
-        const cell = document.getElementById(`cell-${segment.x}-${segment.y}`);
-        if (cell) {
-            cell.classList.add('snake');
-            // 为蛇添加渐变颜色
-            const colorIndex = index % snakeColors.length;
-            cell.style.backgroundColor = snakeColors[colorIndex];
-            // 添加发光效果
-            cell.style.boxShadow = currentGlow;
+    try {
+        // 清空游戏板
+        document.querySelectorAll('.cell').forEach(cell => {
+            cell.classList.remove('snake', 'food');
+            cell.style.backgroundColor = '';
+            cell.style.boxShadow = '';
+        });
+        
+        // 获取当前等级的发光效果
+        const currentGlow = evolutionLevels[currentEvolution].glow;
+        
+        // 渲染蛇
+        snake.forEach((segment, index) => {
+            const cell = document.getElementById(`cell-${segment.x}-${segment.y}`);
+            if (cell) {
+                cell.classList.add('snake');
+                // 为蛇添加渐变颜色
+                const colorIndex = index % snakeColors.length;
+                cell.style.backgroundColor = snakeColors[colorIndex];
+                // 添加发光效果
+                cell.style.boxShadow = currentGlow;
+            }
+        });
+        
+        // 渲染食物
+        const foodCell = document.getElementById(`cell-${food.x}-${food.y}`);
+        if (foodCell) {
+            foodCell.classList.add('food');
+            // 为食物添加随机颜色
+            const colorIndex = Math.floor(Math.random() * foodColors.length);
+            foodCell.style.backgroundColor = foodColors[colorIndex];
         }
-    });
-    
-    // 渲染食物
-    const foodCell = document.getElementById(`cell-${food.x}-${food.y}`);
-    if (foodCell) {
-        foodCell.classList.add('food');
-        // 为食物添加随机颜色
-        const colorIndex = Math.floor(Math.random() * foodColors.length);
-        foodCell.style.backgroundColor = foodColors[colorIndex];
+        
+        // 更新分数
+        if (scoreElement) scoreElement.textContent = score;
+        if (highScoreElement) highScoreElement.textContent = highScore;
+        
+        // 检查变身等级
+        checkEvolution();
+    } catch (e) {
+        console.log('Error rendering game:', e);
     }
-    
-    // 更新分数
-    scoreElement.textContent = score;
-    highScoreElement.textContent = highScore;
-    
-    // 检查变身等级
-    checkEvolution();
 }
 
 // 处理键盘输入
@@ -462,22 +520,31 @@ function gameOver() {
 
 // 重置游戏
 function resetGame() {
-    snake = [{ x: 10, y: 10 }];
-    food = { x: 15, y: 10 };
-    direction = { x: 1, y: 0 };
-    nextDirection = { x: 1, y: 0 };
-    score = 0;
-    currentEvolution = 0;
-    snakeColors = evolutionLevels[0].colors;
-    
-    // 重置等级显示
-    document.getElementById('evolution-level').textContent = evolutionLevels[0].name;
-    
-    // 重置进度条
-    document.getElementById('progress-fill').style.width = '0%';
-    document.getElementById('progress-text').textContent = '0/10';
-    
-    render();
+    try {
+        snake = [{ x: 10, y: 10 }];
+        food = { x: 15, y: 10 };
+        direction = { x: 1, y: 0 };
+        nextDirection = { x: 1, y: 0 };
+        score = 0;
+        currentEvolution = 0;
+        snakeColors = evolutionLevels[0].colors;
+        
+        // 重置等级显示
+        const evolutionLevelElement = document.getElementById('evolution-level');
+        if (evolutionLevelElement) {
+            evolutionLevelElement.textContent = evolutionLevels[0].name;
+        }
+        
+        // 重置进度条
+        const progressFill = document.getElementById('progress-fill');
+        const progressText = document.getElementById('progress-text');
+        if (progressFill) progressFill.style.width = '0%';
+        if (progressText) progressText.textContent = '0/10';
+        
+        render();
+    } catch (e) {
+        console.log('Error resetting game:', e);
+    }
 }
 
 // 初始化游戏
