@@ -1,0 +1,123 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 10px;
+}
+
+.game-container {
+    text-align: center;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    max-width: 100%;
+}
+
+h1 {
+    color: #333;
+    margin-bottom: 20px;
+    font-size: 24px;
+}
+
+.score {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #666;
+}
+
+.game-board {
+    display: grid;
+    grid-template-columns: repeat(20, 1fr);
+    grid-template-rows: repeat(20, 1fr);
+    gap: 1px;
+    background-color: #ddd;
+    margin: 0 auto 20px;
+    border: 2px solid #333;
+    max-width: 300px;
+    aspect-ratio: 1 / 1;
+}
+
+.cell {
+    background-color: #fff;
+}
+
+.snake {
+    background-color: #4CAF50;
+    border-radius: 3px;
+}
+
+.food {
+    background-color: #f44336;
+    border-radius: 50%;
+}
+
+.controls {
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 20px;
+    display: none;
+}
+
+.controls p {
+    margin: 5px 0;
+}
+
+.touch-controls {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.horizontal-controls {
+    display: flex;
+    gap: 10px;
+}
+
+.control-btn {
+    width: 60px;
+    height: 60px;
+    font-size: 24px;
+    border: none;
+    border-radius: 10px;
+    background-color: #4CAF50;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    touch-action: manipulation;
+}
+
+.control-btn.start {
+    width: 180px;
+    background-color: #2196F3;
+    font-size: 16px;
+}
+
+.control-btn:active {
+    transform: scale(0.95);
+}
+
+@media (min-width: 768px) {
+    .controls {
+        display: block;
+    }
+    .touch-controls {
+        display: none;
+    }
+    .game-board {
+        max-width: 400px;
+    }
+}
