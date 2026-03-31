@@ -55,6 +55,9 @@ function initAudio() {
         // 备用音频源
         backgroundMusic.src = 'https://cdn.pixabay.com/download/audio/2021/11/25/audio_cb0b7c6a4c.mp3?filename=ambient-piano-amp-strings-10711.mp3';
     });
+    
+    // 预加载音频，但不阻塞游戏初始化
+    backgroundMusic.preload = 'auto';
 }
 
 // DOM元素
@@ -122,13 +125,17 @@ function initGame() {
     initAudio();
     
     // 创建游戏板
-    for (let y = 0; y < GRID_SIZE; y++) {
-        for (let x = 0; x < GRID_SIZE; x++) {
-            const cell = document.createElement('div');
-            cell.classList.add('cell');
-            cell.id = `cell-${x}-${y}`;
-            gameBoard.appendChild(cell);
+    try {
+        for (let y = 0; y < GRID_SIZE; y++) {
+            for (let x = 0; x < GRID_SIZE; x++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                cell.id = `cell-${x}-${y}`;
+                gameBoard.appendChild(cell);
+            }
         }
+    } catch (e) {
+        console.log('Error creating game board:', e);
     }
     
     // 渲染初始状态
@@ -164,10 +171,18 @@ function initGame() {
     // 监听音效开关
     soundToggle.addEventListener('change', (e) => {
         soundEnabled = e.target.checked;
-        if (soundEnabled && gameRunning) {
-            backgroundMusic.play().catch(e => console.log('Audio play failed:', e));
-        } else {
-            backgroundMusic.pause();
+        if (soundEnabled && gameRunning && backgroundMusic) {
+            try {
+                backgroundMusic.play().catch(e => console.log('Audio play failed:', e));
+            } catch (e) {
+                console.log('Audio play failed:', e);
+            }
+        } else if (backgroundMusic) {
+            try {
+                backgroundMusic.pause();
+            } catch (e) {
+                console.log('Audio pause failed:', e);
+            }
         }
     });
     
@@ -331,15 +346,23 @@ function toggleGame() {
         clearInterval(gameInterval);
         gameRunning = false;
         // 暂停音乐
-        if (soundEnabled) {
-            backgroundMusic.pause();
+        if (soundEnabled && backgroundMusic) {
+            try {
+                backgroundMusic.pause();
+            } catch (e) {
+                console.log('Audio pause failed:', e);
+            }
         }
     } else {
         gameRunning = true;
         gameInterval = setInterval(gameLoop, speeds[difficulty]);
-        // 播放音乐
-        if (soundEnabled) {
-            backgroundMusic.play().catch(e => console.log('Audio play failed:', e));
+        // 播放音乐 - 即使失败也不影响游戏开始
+        if (soundEnabled && backgroundMusic) {
+            try {
+                backgroundMusic.play().catch(e => console.log('Audio play failed:', e));
+            } catch (e) {
+                console.log('Audio play failed:', e);
+            }
         }
     }
 }
