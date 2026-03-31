@@ -7,13 +7,26 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div class="stars-background">
+        <div class="stars"></div>
+        <div class="stars2"></div>
+        <div class="stars3"></div>
+    </div>
     <div class="game-container">
-        <h1>贪吃蛇游戏</h1>
+        <h1>🚀 宇宙贪吃蛇 🚀</h1>
         <div class="game-stats">
             <div class="score">分数: <span id="score">0</span></div>
             <div class="high-score">最高分: <span id="high-score">0</span></div>
+            <div class="evolution">等级: <span id="evolution-level">幼蛇</span></div>
         </div>
-        <div class="game-board" id="game-board"></div>
+        <div class="game-board-container">
+            <div class="game-board" id="game-board"></div>
+            <div class="game-effects" id="game-effects"></div>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+            <span class="progress-text">升级进度: <span id="progress-text">0/10</span></span>
+        </div>
         <div class="game-options">
             <div class="difficulty">
                 <label>难度:</label>
@@ -24,26 +37,27 @@
                 </select>
             </div>
             <div class="sound">
-                <label>音效:</label>
+                <label>音乐:</label>
                 <input type="checkbox" id="sound-toggle" checked>
             </div>
             <div class="snake-color">
-                <label>蛇颜色:</label>
+                <label>颜色:</label>
                 <input type="color" id="snake-color-picker" value="#00ffff">
             </div>
         </div>
         <div class="controls">
-            <p>使用方向键控制蛇的移动</p>
-            <p>按空格键开始/暂停游戏</p>
+            <p>🎮 使用方向键控制蛇的移动</p>
+            <p>⏸️ 按空格键开始/暂停游戏</p>
+            <p>✨ 每10分升级变身，获得炫酷外观！</p>
         </div>
         <div class="touch-controls">
-            <button class="control-btn up" id="up-btn">↑</button>
+            <button class="control-btn up" id="up-btn">▲</button>
             <div class="horizontal-controls">
-                <button class="control-btn left" id="left-btn">←</button>
-                <button class="control-btn down" id="down-btn">↓</button>
-                <button class="control-btn right" id="right-btn">→</button>
+                <button class="control-btn left" id="left-btn">◀</button>
+                <button class="control-btn down" id="down-btn">▼</button>
+                <button class="control-btn right" id="right-btn">▶</button>
             </div>
-            <button class="control-btn start" id="start-btn">开始/暂停</button>
+            <button class="control-btn start" id="start-btn">▶ 开始/暂停</button>
         </div>
     </div>
     <script src="script.js"></script>

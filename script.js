@@ -28,12 +28,33 @@ const foodColors = ['#ff9900', '#ffaa33', '#ffcc66', '#ffdd99'];
 // 背景音乐
 let backgroundMusic;
 
+// 变身等级设置
+const evolutionLevels = [
+    { name: '幼蛇', colors: ['#00ffff', '#00cccc', '#009999', '#006666'], glow: '0 0 5px rgba(0, 255, 255, 0.5)' },
+    { name: '灵蛇', colors: ['#ff00ff', '#cc00cc', '#990099', '#660066'], glow: '0 0 8px rgba(255, 0, 255, 0.7)' },
+    { name: '蛟龙', colors: ['#ffd700', '#ccac00', '#998100', '#665600'], glow: '0 0 10px rgba(255, 215, 0, 0.8)' },
+    { name: '神龙', colors: ['#ff4500', '#cc3700', '#992900', '#661c00'], glow: '0 0 12px rgba(255, 69, 0, 0.9)' },
+    { name: '宇宙蛇神', colors: ['#ffffff', '#e0e0e0', '#c0c0c0', '#a0a0a0'], glow: '0 0 15px rgba(255, 255, 255, 1)' }
+];
+
+let currentEvolution = 0;
+
+// 背景音乐
+let backgroundMusic;
+
 // 初始化音频
 function initAudio() {
-    // 创建音频对象
-    backgroundMusic = new Audio('https://files.freemusicarchive.org/storage-freemusicarchive-org/music/no_curator/Robert_de_Bruce/Celestial_Thoughts/Robert_de_Bruce_-_01_-_Celestial_Thoughts.mp3');
+    // 使用更可靠的音频源 - 太空主题背景音乐
+    backgroundMusic = new Audio('https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73467.mp3?filename=space-ambient-11758.mp3');
     backgroundMusic.loop = true;
     backgroundMusic.volume = 0.3;
+    
+    // 添加错误处理
+    backgroundMusic.addEventListener('error', (e) => {
+        console.log('音频加载失败，尝试备用音频源');
+        // 备用音频源
+        backgroundMusic.src = 'https://cdn.pixabay.com/download/audio/2021/11/25/audio_cb0b7c6a4c.mp3?filename=ambient-piano-amp-strings-10711.mp3';
+    });
 }
 
 // DOM元素
@@ -157,13 +178,86 @@ function initGame() {
     });
 }
 
+// 检查变身等级
+function checkEvolution() {
+    const newLevel = Math.min(Math.floor(score / 10), evolutionLevels.length - 1);
+    if (newLevel > currentEvolution) {
+        currentEvolution = newLevel;
+        // 应用新的外观
+        const evolution = evolutionLevels[currentEvolution];
+        snakeColors = evolution.colors;
+        
+        // 显示升级特效
+        showEvolutionEffect(evolution.name);
+        
+        // 更新等级显示
+        document.getElementById('evolution-level').textContent = evolution.name;
+    }
+    
+    // 更新进度条
+    const progress = (score % 10) / 10 * 100;
+    document.getElementById('progress-fill').style.width = progress + '%';
+    document.getElementById('progress-text').textContent = `${score % 10}/10`;
+}
+
+// 显示变身特效
+function showEvolutionEffect(levelName) {
+    const effectsContainer = document.getElementById('game-effects');
+    const effect = document.createElement('div');
+    effect.className = 'evolution-effect';
+    effect.innerHTML = `
+        <div class="level-up-text">✨ ${levelName} ✨</div>
+    `;
+    effect.style.cssText = `
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.8);
+        color: #ffd700;
+        padding: 20px;
+        border-radius: 10px;
+        border: 2px solid #ffd700;
+        font-size: 24px;
+        font-weight: bold;
+        text-align: center;
+        z-index: 100;
+        animation: levelUp 2s ease-out forwards;
+        box-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+    `;
+    
+    effectsContainer.appendChild(effect);
+    
+    // 2秒后移除特效
+    setTimeout(() => {
+        if (effectsContainer.contains(effect)) {
+            effectsContainer.removeChild(effect);
+        }
+    }, 2000);
+}
+
+// 添加CSS动画
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes levelUp {
+        0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+        50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+        100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+    }
+`;
+document.head.appendChild(style);
+
 // 渲染游戏状态
 function render() {
     // 清空游戏板
     document.querySelectorAll('.cell').forEach(cell => {
         cell.classList.remove('snake', 'food');
         cell.style.backgroundColor = '';
+        cell.style.boxShadow = '';
     });
+    
+    // 获取当前等级的发光效果
+    const currentGlow = evolutionLevels[currentEvolution].glow;
     
     // 渲染蛇
     snake.forEach((segment, index) => {
@@ -173,6 +267,8 @@ function render() {
             // 为蛇添加渐变颜色
             const colorIndex = index % snakeColors.length;
             cell.style.backgroundColor = snakeColors[colorIndex];
+            // 添加发光效果
+            cell.style.boxShadow = currentGlow;
         }
     });
     
@@ -188,6 +284,9 @@ function render() {
     // 更新分数
     scoreElement.textContent = score;
     highScoreElement.textContent = highScore;
+    
+    // 检查变身等级
+    checkEvolution();
 }
 
 // 处理键盘输入
@@ -345,6 +444,16 @@ function resetGame() {
     direction = { x: 1, y: 0 };
     nextDirection = { x: 1, y: 0 };
     score = 0;
+    currentEvolution = 0;
+    snakeColors = evolutionLevels[0].colors;
+    
+    // 重置等级显示
+    document.getElementById('evolution-level').textContent = evolutionLevels[0].name;
+    
+    // 重置进度条
+    document.getElementById('progress-fill').style.width = '0%';
+    document.getElementById('progress-text').textContent = '0/10';
+    
     render();
 }
 
