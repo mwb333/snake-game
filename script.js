@@ -467,12 +467,14 @@ function gameOver() {
 function resetGame() {
     try {
         snake = [{ x: 10, y: 10 }];
-        food = { x: 15, y: 10 };
         direction = { x: 1, y: 0 };
         nextDirection = { x: 1, y: 0 };
         score = 0;
         currentEvolution = 0;
         snakeColors = evolutionLevels[0].colors;
+        
+        // 生成随机食物位置
+        generateFood();
         
         // 重置等级显示
         const evolutionLevelElement = document.getElementById('evolution-level');
