@@ -12,7 +12,6 @@ let highScore = 0;
 let gameInterval;
 let gameRunning = false;
 let difficulty = 'medium';
-let soundEnabled = true;
 
 // 速度设置
 const speeds = {
@@ -36,26 +35,10 @@ const evolutionLevels = [
 
 let currentEvolution = 0;
 
-// 初始化音频
-function initAudio() {
-    // 使用更可靠的音频源 - 太空主题背景音乐
-    backgroundMusic = new Audio('https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73467.mp3?filename=space-ambient-11758.mp3');
-    backgroundMusic.loop = true;
-    backgroundMusic.volume = 0.3;
-    
-    // 添加错误处理
-    backgroundMusic.addEventListener('error', (e) => {
-        console.log('音频加载失败，尝试备用音频源');
-        // 备用音频源
-        backgroundMusic.src = 'https://cdn.pixabay.com/download/audio/2021/11/25/audio_cb0b7c6a4c.mp3?filename=ambient-piano-amp-strings-10711.mp3';
-    });
-    
-    // 预加载音频，但不阻塞游戏初始化
-    backgroundMusic.preload = 'auto';
-}
+
 
 // DOM元素
-let gameBoard, scoreElement, highScoreElement, difficultySelect, soundToggle, snakeColorPicker;
+let gameBoard, scoreElement, highScoreElement, difficultySelect, snakeColorPicker;
 
 // 初始化DOM元素
 function initDOM() {
@@ -64,11 +47,10 @@ function initDOM() {
         scoreElement = document.getElementById('score');
         highScoreElement = document.getElementById('high-score');
         difficultySelect = document.getElementById('difficulty-select');
-        soundToggle = document.getElementById('sound-toggle');
         snakeColorPicker = document.getElementById('snake-color-picker');
         
         // 检查所有DOM元素是否存在
-        if (!gameBoard || !scoreElement || !highScoreElement || !difficultySelect || !soundToggle || !snakeColorPicker) {
+        if (!gameBoard || !scoreElement || !highScoreElement || !difficultySelect || !snakeColorPicker) {
             console.log('Error: Missing DOM elements');
         }
     } catch (e) {
@@ -147,9 +129,6 @@ function initGame() {
         // 加载蛇颜色
         loadSnakeColor();
         
-        // 初始化音频
-        initAudio();
-        
         // 创建游戏板
         if (gameBoard) {
             try {
@@ -200,25 +179,7 @@ function initGame() {
             });
         }
         
-        // 监听音效开关
-        if (soundToggle) {
-            soundToggle.addEventListener('change', (e) => {
-                soundEnabled = e.target.checked;
-                if (soundEnabled && gameRunning && backgroundMusic) {
-                    try {
-                        backgroundMusic.play().catch(e => console.log('Audio play failed:', e));
-                    } catch (e) {
-                        console.log('Audio play failed:', e);
-                    }
-                } else if (backgroundMusic) {
-                    try {
-                        backgroundMusic.pause();
-                    } catch (e) {
-                        console.log('Audio pause failed:', e);
-                    }
-                }
-            });
-        }
+
         
         // 监听蛇颜色选择
         if (snakeColorPicker) {
@@ -403,25 +364,9 @@ function toggleGame() {
     if (gameRunning) {
         clearInterval(gameInterval);
         gameRunning = false;
-        // 暂停音乐
-        if (soundEnabled && backgroundMusic) {
-            try {
-                backgroundMusic.pause();
-            } catch (e) {
-                console.log('Audio pause failed:', e);
-            }
-        }
     } else {
         gameRunning = true;
         gameInterval = setInterval(gameLoop, speeds[difficulty]);
-        // 播放音乐 - 即使失败也不影响游戏开始
-        if (soundEnabled && backgroundMusic) {
-            try {
-                backgroundMusic.play().catch(e => console.log('Audio play failed:', e));
-            } catch (e) {
-                console.log('Audio play failed:', e);
-            }
-        }
     }
 }
 
