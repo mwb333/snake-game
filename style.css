@@ -29,10 +29,42 @@ h1 {
     font-size: 24px;
 }
 
-.score {
-    font-size: 24px;
+.game-stats {
+    display: flex;
+    justify-content: space-around;
     margin-bottom: 20px;
+}
+
+.score, .high-score {
+    font-size: 20px;
     color: #666;
+    font-weight: bold;
+}
+
+.game-options {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #f5f5f5;
+    border-radius: 5px;
+}
+
+.difficulty, .sound {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.difficulty select {
+    padding: 5px;
+    border-radius: 3px;
+    border: 1px solid #ddd;
+}
+
+.sound input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
 }
 
 .game-board {

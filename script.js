@@ -8,15 +8,35 @@ let food = { x: 15, y: 10 };
 let direction = { x: 1, y: 0 };
 let nextDirection = { x: 1, y: 0 };
 let score = 0;
+let highScore = 0;
 let gameInterval;
 let gameRunning = false;
+let difficulty = 'medium';
+let soundEnabled = true;
+
+// 速度设置
+const speeds = {
+    easy: 150,
+    medium: 100,
+    hard: 60
+};
+
+// 颜色设置
+const snakeColors = ['#4CAF50', '#45a049', '#3d8b40', '#367c39'];
+const foodColors = ['#f44336', '#e53935', '#d32f2f', '#c62828'];
 
 // DOM元素
 const gameBoard = document.getElementById('game-board');
 const scoreElement = document.getElementById('score');
+const highScoreElement = document.getElementById('high-score');
+const difficultySelect = document.getElementById('difficulty-select');
+const soundToggle = document.getElementById('sound-toggle');
 
 // 初始化游戏
 function initGame() {
+    // 加载最高分
+    loadHighScore();
+    
     // 创建游戏板
     for (let y = 0; y < GRID_SIZE; y++) {
         for (let x = 0; x < GRID_SIZE; x++) {
@@ -47,6 +67,20 @@ function initGame() {
         if (direction.x !== -1) nextDirection = { x: 1, y: 0 };
     });
     document.getElementById('start-btn').addEventListener('click', toggleGame);
+    
+    // 监听难度选择
+    difficultySelect.addEventListener('change', (e) => {
+        difficulty = e.target.value;
+        if (gameRunning) {
+            clearInterval(gameInterval);
+            gameInterval = setInterval(gameLoop, speeds[difficulty]);
+        }
+    });
+    
+    // 监听音效开关
+    soundToggle.addEventListener('change', (e) => {
+        soundEnabled = e.target.checked;
+    });
 }
 
 // 渲染游戏状态
@@ -54,20 +88,32 @@ function render() {
     // 清空游戏板
     document.querySelectorAll('.cell').forEach(cell => {
         cell.classList.remove('snake', 'food');
+        cell.style.backgroundColor = '';
     });
     
     // 渲染蛇
-    snake.forEach(segment => {
+    snake.forEach((segment, index) => {
         const cell = document.getElementById(`cell-${segment.x}-${segment.y}`);
-        if (cell) cell.classList.add('snake');
+        if (cell) {
+            cell.classList.add('snake');
+            // 为蛇添加渐变颜色
+            const colorIndex = index % snakeColors.length;
+            cell.style.backgroundColor = snakeColors[colorIndex];
+        }
     });
     
     // 渲染食物
     const foodCell = document.getElementById(`cell-${food.x}-${food.y}`);
-    if (foodCell) foodCell.classList.add('food');
+    if (foodCell) {
+        foodCell.classList.add('food');
+        // 为食物添加随机颜色
+        const colorIndex = Math.floor(Math.random() * foodColors.length);
+        foodCell.style.backgroundColor = foodColors[colorIndex];
+    }
     
     // 更新分数
     scoreElement.textContent = score;
+    highScoreElement.textContent = highScore;
 }
 
 // 处理键盘输入
@@ -91,6 +137,21 @@ function handleKeyPress(e) {
     }
 }
 
+// 播放音效
+function playSound(type) {
+    if (!soundEnabled) return;
+    
+    // 这里可以添加不同类型的音效
+    // 由于没有实际的音频文件，我们使用简单的提示音
+    if (type === 'eat') {
+        // 模拟吃食物的音效
+        console.log('Eating sound');
+    } else if (type === 'gameOver') {
+        // 模拟游戏结束的音效
+        console.log('Game over sound');
+    }
+}
+
 // 切换游戏状态
 function toggleGame() {
     if (gameRunning) {
@@ -98,7 +159,7 @@ function toggleGame() {
         gameRunning = false;
     } else {
         gameRunning = true;
-        gameInterval = setInterval(gameLoop, 100);
+        gameInterval = setInterval(gameLoop, speeds[difficulty]);
     }
 }
 
@@ -122,6 +183,7 @@ function gameLoop() {
     // 检查是否吃到食物
     if (head.x === food.x && head.y === food.y) {
         score++;
+        playSound('eat');
         generateFood();
     } else {
         // 移除尾部
@@ -162,11 +224,34 @@ function generateFood() {
     food = newFood;
 }
 
+// 保存最高分
+function saveHighScore() {
+    localStorage.setItem('snakeGameHighScore', highScore.toString());
+}
+
+// 加载最高分
+function loadHighScore() {
+    const savedScore = localStorage.getItem('snakeGameHighScore');
+    if (savedScore) {
+        highScore = parseInt(savedScore);
+    }
+}
+
 // 游戏结束
 function gameOver() {
     clearInterval(gameInterval);
     gameRunning = false;
-    alert(`游戏结束！最终分数：${score}`);
+    
+    // 更新最高分
+    if (score > highScore) {
+        highScore = score;
+        saveHighScore();
+        alert(`恭喜！新的最高分：${highScore}`);
+    } else {
+        alert(`游戏结束！最终分数：${score}`);
+    }
+    
+    playSound('gameOver');
     // 重置游戏
     resetGame();
 }
