@@ -22,8 +22,19 @@ const speeds = {
 };
 
 // 颜色设置
-const snakeColors = ['#4CAF50', '#45a049', '#3d8b40', '#367c39'];
-const foodColors = ['#f44336', '#e53935', '#d32f2f', '#c62828'];
+let snakeColors = ['#00ffff', '#00cccc', '#009999', '#006666'];
+const foodColors = ['#ff9900', '#ffaa33', '#ffcc66', '#ffdd99'];
+
+// 背景音乐
+let backgroundMusic;
+
+// 初始化音频
+function initAudio() {
+    // 创建音频对象
+    backgroundMusic = new Audio('https://files.freemusicarchive.org/storage-freemusicarchive-org/music/no_curator/Robert_de_Bruce/Celestial_Thoughts/Robert_de_Bruce_-_01_-_Celestial_Thoughts.mp3');
+    backgroundMusic.loop = true;
+    backgroundMusic.volume = 0.3;
+}
 
 // DOM元素
 const gameBoard = document.getElementById('game-board');
@@ -31,11 +42,63 @@ const scoreElement = document.getElementById('score');
 const highScoreElement = document.getElementById('high-score');
 const difficultySelect = document.getElementById('difficulty-select');
 const soundToggle = document.getElementById('sound-toggle');
+const snakeColorPicker = document.getElementById('snake-color-picker');
+
+// 保存蛇颜色
+function saveSnakeColor() {
+    localStorage.setItem('snakeGameColor', snakeColorPicker.value);
+}
+
+// 加载蛇颜色
+function loadSnakeColor() {
+    const savedColor = localStorage.getItem('snakeGameColor');
+    if (savedColor) {
+        snakeColorPicker.value = savedColor;
+        updateSnakeColors(savedColor);
+    }
+}
+
+// 更新蛇颜色
+function updateSnakeColors(baseColor) {
+    // 生成基于所选颜色的渐变
+    const base = hexToRgb(baseColor);
+    snakeColors = [
+        baseColor,
+        rgbToHex(base.r - 32, base.g - 32, base.b - 32),
+        rgbToHex(base.r - 64, base.g - 64, base.b - 64),
+        rgbToHex(base.r - 96, base.g - 96, base.b - 96)
+    ];
+    // 如果游戏正在运行，重新渲染
+    if (gameRunning) {
+        render();
+    }
+}
+
+// 十六进制转RGB
+function hexToRgb(hex) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+    } : { r: 0, g: 255, b: 255 };
+}
+
+// RGB转十六进制
+function rgbToHex(r, g, b) {
+    return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+}
 
 // 初始化游戏
 function initGame() {
     // 加载最高分
     loadHighScore();
+    
+    // 加载蛇颜色
+    loadSnakeColor();
+    
+    // 初始化音频
+    initAudio();
     
     // 创建游戏板
     for (let y = 0; y < GRID_SIZE; y++) {
@@ -80,6 +143,17 @@ function initGame() {
     // 监听音效开关
     soundToggle.addEventListener('change', (e) => {
         soundEnabled = e.target.checked;
+        if (soundEnabled && gameRunning) {
+            backgroundMusic.play().catch(e => console.log('Audio play failed:', e));
+        } else {
+            backgroundMusic.pause();
+        }
+    });
+    
+    // 监听蛇颜色选择
+    snakeColorPicker.addEventListener('change', (e) => {
+        updateSnakeColors(e.target.value);
+        saveSnakeColor();
     });
 }
 
@@ -157,9 +231,17 @@ function toggleGame() {
     if (gameRunning) {
         clearInterval(gameInterval);
         gameRunning = false;
+        // 暂停音乐
+        if (soundEnabled) {
+            backgroundMusic.pause();
+        }
     } else {
         gameRunning = true;
         gameInterval = setInterval(gameLoop, speeds[difficulty]);
+        // 播放音乐
+        if (soundEnabled) {
+            backgroundMusic.play().catch(e => console.log('Audio play failed:', e));
+        }
     }
 }
 
